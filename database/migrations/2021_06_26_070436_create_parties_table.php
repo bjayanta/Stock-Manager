@@ -23,8 +23,8 @@ class CreatePartiesTable extends Migration
             $table->string('phone');
             $table->decimal('balance', 11, 3);
             $table->string('balance_type');
-            $table->string('image');
-            $table->longText('description');
+            $table->string('image')->nullable();
+            $table->longText('description')->nullable();
             $table->timestamps();
         });
     }

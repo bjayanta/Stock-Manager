@@ -17,7 +17,11 @@ class PartyController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index() {
-        return view('party.index')->with('meta', $this->meta);
+        // get all the records from party table 
+        $records = Party::all();
+
+        // pass data and return view
+        return view('party.index', compact('records'))->with('meta', $this->meta);
     }
 
     /**
@@ -53,6 +57,14 @@ class PartyController extends Controller
             'description' => 'nullable',
         ]);
 
+        /*
+        if($request->balance_type == 1) {
+            $data['balance'] = 0 - $request->balance;
+        } else {
+            $data['balance'] = 0 + $request->balance;
+        }
+        */
+
         // file upload 
         if($request->hasFile('image')) {
             $request->image->store('public/images');
@@ -75,9 +87,13 @@ class PartyController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        //
+    public function show($id) {
+        // get the specified data
+        $record = Party::findOrFail($id);
+        // dd($record);
+
+        // view
+        return view('party.show', compact('record'))->with('meta', $this->meta);
     }
 
     /**
@@ -86,9 +102,12 @@ class PartyController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
-    {
-        //
+    public function edit($id) {
+        // get the specified data
+        $record = Party::findOrFail($id);
+
+        // view
+        return view('party.edit', compact('record'))->with('meta', $this->meta);
     }
 
     /**
@@ -98,9 +117,36 @@ class PartyController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
-        //
+    public function update(Request $request, $id) {
+        // validation
+        $data = $request->validate([
+            'company_name' => 'required|max:100',
+            'owner_name' => 'required|max:100',
+            'party_type' => 'required',
+            'email' => 'nullable',
+            'address' => 'nullable',
+            'phone' => 'required|max:15',
+            'balance' => 'required|numeric',
+            'balance_type' => 'required',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'description' => 'nullable',
+        ]);
+
+        if($request->hasFile('image')) {
+            $request->image->store('public/images');
+            $data['image'] = 'images/' . $request->image->hashName();
+        }
+
+        $Party= Party::findOrFail($id);
+        $Party->update($data);
+
+
+
+         // flash message
+         $request->session()->flash('success', "Operation has been Updated successfully!");
+
+        // view
+        return redirect(route('party.index'));
     }
 
     /**
