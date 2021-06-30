@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Party;
+use Illuminate\Support\Facades\Storage;
 
 class PartyController extends Controller
 {
@@ -118,6 +119,9 @@ class PartyController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id) {
+        // get the specified data
+        $party= Party::findOrFail($id);
+
         // validation
         $data = $request->validate([
             'company_name' => 'required|max:100',
@@ -132,18 +136,22 @@ class PartyController extends Controller
             'description' => 'nullable',
         ]);
 
+        // save the image
         if($request->hasFile('image')) {
+            // find the image + delete
+            if (Storage::exists('public/' . $party->image)) {
+                Storage::delete('public/' . $party->image);
+            }
+
+            // insert new image
             $request->image->store('public/images');
             $data['image'] = 'images/' . $request->image->hashName();
         }
 
-        $Party= Party::findOrFail($id);
-        $Party->update($data);
+        $party->update($data);
 
-
-
-         // flash message
-         $request->session()->flash('success', "Operation has been Updated successfully!");
+        // flash message
+        $request->session()->flash('success', "Operation has been Updated successfully!");
 
         // view
         return redirect(route('party.index'));
@@ -155,8 +163,21 @@ class PartyController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        //
+    public function destroy($id) {
+        $party = Party::findOrFail($id);
+
+        // delete image from stroage
+        if (Storage::exists('public/' . $party->image)) {
+            Storage::delete('public/' . $party->image);
+        }
+
+        // delete from db
+        if($party->delete()) {
+            // flash message
+            session()->flash('success', "Operation has been Updated successfully!");
+        }
+        
+        // view
+        return back();
     }
 }

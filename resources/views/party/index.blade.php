@@ -54,7 +54,12 @@
                     <td class="text-end">
                         <a href="{{ route('party.show', $row->id) }}">Details</a>
                         <a href="{{ route('party.edit', $row->id) }}">Edit</a>
-                        <a href="{{ route('party.destroy', $row->id) }}">Delete</a>
+
+                        <a href="{{ route('party.show', $row->id) }}" onclick="if(confirm('Are you sure to delete this record?')) {event.preventDefault();document.getElementById('delete-{{ $row->id }}').submit();} else {event.preventDefault();}">Delete</a>
+                        <form action="{{ route('party.destroy', $row->id) }}" method="POST" id="delete-{{ $row->id }}">
+                            @csrf
+                            @method('DELETE')
+                        </form>
                     </td>
                 </tr>
 
